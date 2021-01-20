@@ -1,6 +1,14 @@
+.idea
+*.wav
+*.mp3
+*.mp4
+*.webm
+pretrained_models
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+
 *$py.class
 
 # C extensions
