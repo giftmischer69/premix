@@ -23,7 +23,7 @@ def convert_to_wav(stream, file_handle):
         new_file = "beat.wav"  # get_wav_file_name(file_handle)
     else:
         new_file = "vocals.wav"
-    subprocess.run(["ffmpeg", "-y", "-i", file_handle, new_file])
+    subprocess.run(["ffmpeg", "-y", "-i", file_handle, "-ar", "44100", new_file])
     print(f"built {new_file}")
 
 
@@ -33,13 +33,6 @@ def download_to_wav(url: str):
     stream = yt.streams.filter(only_audio=True).order_by("abr").first()
     print(stream)
     stream.download()
-
-
-st.title("phonk remix maker")
-
-beat_col, vocal_col = st.beta_columns(2)
-beat_url = beat_col.text_input("enter beat youtube url", "https://www.youtube.com/watch?v=-YOPxfhjnEM")
-vocal_url = vocal_col.text_input("enter vocals youtube url", "https://www.youtube.com/watch?v=AccIPg0YCVc")
 
 
 def detect_bpm(wav_file):
@@ -85,10 +78,10 @@ def get_downbeat_times(wav_file):
     full_measure_beats = beats[:measures * meter].reshape(-1, meter)
     # and select the beat position we want: downbeat_pos
     downbeat_frames = full_measure_beats[:, downbeat_pos]
-    print('Downbeat frames: {}'.format(downbeat_frames))
+    # print('Downbeat frames: {}'.format(downbeat_frames))
     # print times
     downbeat_times = librosa.frames_to_time(downbeat_frames, sr=sr)
-    print('Downbeat times in s: {}'.format(downbeat_times))
+    # print('Downbeat times in s: {}'.format(downbeat_times))
     return downbeat_times
 
 
@@ -104,13 +97,43 @@ def stretch_wav(splitted_vocal_wav, output_file, stretch_factor):
     tfm.build(splitted_vocal_wav, output_file)
 
 
-if st.button("download"):
-    beat_dl = multiprocessing.Process(target=download_to_wav, args=(beat_url, ))
-    vocal_dl = multiprocessing.Process(target=download_to_wav, args=(vocal_url,))
-    beat_dl.start()
-    vocal_dl.start()
-    beat_dl.join()
-    vocal_dl.join()
+def add_delay(stretched_vcl, output_file, dly):
+    tfm = sox.Transformer()
+    tfm.delay([dly, dly])
+    tfm.build(stretched_vcl, output_file)
+
+
+def merge_wav(wav_01, wav_02, output_wav):
+    cbm = sox.Combiner()
+    cbm.build([wav_01, wav_02], output_wav, "mix-power")
+
+
+if __name__ == '__main__':
+    st.title("phonk remix maker")
+
+    beat_col, vocal_col = st.beta_columns(2)
+    beat_url = beat_col.text_input("enter beat youtube url", "https://www.youtube.com/watch?v=jMeDA3UbTFU")
+    vocal_url = vocal_col.text_input("enter vocals youtube url", "https://www.youtube.com/watch?v=J-Ectj_BPoo")
+
+    # if st.button("download"):
+    download_to_wav(beat_url)
+    download_to_wav(vocal_url)
+
+    # beat_dl = multiprocessing.Process(target=download_to_wav, args=(beat_url,))
+    # vocal_dl = multiprocessing.Process(target=download_to_wav, args=(vocal_url,))
+    # beat_dl.start()
+    # vocal_dl.start()
+    # beat_dl.join()
+    # vocal_dl.join()
+
+    beat_yt = YouTube(beat_url)
+    vocal_yt = YouTube(vocal_url)
+
+    beat_col.image(beat_yt.thumbnail_url, width=250)
+    vocal_col.image(vocal_yt.thumbnail_url, width=250)
+
+    beat_col.subheader(beat_yt.title)
+    vocal_col.subheader(vocal_yt.title)
 
     beat_wav = "beat.wav"
     beat_col.audio(open(beat_wav, "rb").read(), format="audio/wav")
@@ -129,42 +152,40 @@ if st.button("download"):
     beat_beat_times = get_beat_times(beat_wav)
     vocal_beat_times = get_beat_times(vocal_wav)
 
-    beat_col.write(beat_beat_times)
-    vocal_col.write(vocal_beat_times)
+    # beat_col.write(beat_beat_times)
+    # vocal_col.write(vocal_beat_times)
+
+    beat_downbeat_times = get_downbeat_times(beat_wav)
+    vocal_downbeat_times = get_downbeat_times(vocal_wav)
+
+    beat_col.write(beat_downbeat_times)
+    vocal_col.write(vocal_downbeat_times)
+
+    beat_downbeat_num = beat_col.number_input("choose beat first downbeat", 0)
+    vocal_downbeat_num = vocal_col.number_input("choose vocal first downbeat", 0)
+
 
     seperate_voice_beat(vocal_wav)
-    vocal_col.write("splitted:")
+    # vocal_col.write("splitted:")
     splitted_vocal_wav = "splitted/vocals/vocals.wav"
-    vocal_col.audio(open(splitted_vocal_wav, "rb").read(), format="audio/wav")
-    stretch_factor = vocal_bpm / beat_bpm
+    # vocal_col.audio(open(splitted_vocal_wav, "rb").read(), format="audio/wav")
+    stretch_factor = beat_bpm / vocal_bpm
 
-    st.write(f"stretching vocal by: {stretch_factor}")
+    # vocal_col.write(f"stretching vocal by: {stretch_factor}")
     stretched_vocal = "splitted_stretched_vocal.wav"
     stretch_wav(splitted_vocal_wav, stretched_vocal, stretch_factor)
-    st.write(stretched_vocal)
-    vocal_col.audio(open(stretched_vocal, "rb").read(), format="audio/wav")
+    # vocal_col.write(stretched_vocal)
+    # vocal_col.audio(open(stretched_vocal, "rb").read(), format="audio/wav")
+    stretched_vocal_downbeat_times = [x * stretch_factor for x in vocal_downbeat_times]
 
-# Works so far ... wow...
-# TODO:
-# match bpm
-# align starts (add silence to the start of another)
-# https://pysox.readthedocs.io/en/latest/api.html
-# https://pysox.readthedocs.io/en/latest/api.html#sox.transform.Transformer.pad
-# tfm.delay(1.4324234s) # in seconds
-# merge with volume control https://pysox.readthedocs.io/en/latest/api.html#sox.transform.Transformer.vol
+    delay = beat_downbeat_times[beat_downbeat_num] - stretched_vocal_downbeat_times[vocal_downbeat_num]
+    vocal_col.write(f"delay: {delay}")
+    delayed_vocal = "delayed_vocal.wav"
+    add_delay(stretched_vocal, delayed_vocal, delay)
+    # vocal_col.write(delayed_vocal)
+    # vocal_col.audio(open(delayed_vocal, "rb").read(), format="audio/wav")
 
-
-# sample_rate = sox.file_info.sample_rate('path/to/file.mp3')
-# array_out = tfm.build_array(input_filepath='path/to/input_audio.wav')
-
-
-#
-
-# https://github.com/deezer/spleeter/wiki/4.-API-Reference#separator
-
-# import matplotlib.pyplot as plt
-# from scipy.io import wavfile as wav
-
-# rate, data = wav.read('bells.wav')
-# plt.plot(data)
-# plt.show()
+    merged_wav = "merged.wav"
+    merge_wav(beat_wav, delayed_vocal, merged_wav)
+    st.subheader(merged_wav)
+    st.audio(open(merged_wav, "rb").read(), format="audio/wav")
