@@ -1,0 +1,6 @@
+python=3.8
+numpy
+librosa
+streamlit
+pytube
+sox

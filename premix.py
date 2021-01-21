@@ -164,7 +164,6 @@ if __name__ == '__main__':
     beat_downbeat_num = beat_col.number_input("choose beat first downbeat", 0)
     vocal_downbeat_num = vocal_col.number_input("choose vocal first downbeat", 0)
 
-
     seperate_voice_beat(vocal_wav)
     # vocal_col.write("splitted:")
     splitted_vocal_wav = "splitted/vocals/vocals.wav"
