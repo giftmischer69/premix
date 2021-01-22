@@ -2,7 +2,7 @@
 
 phonk remix maker
 
-takes a beat and a rap-song, detects bpm, beats and downbeats for each, isolates vocals from rap-song and stretches the 
+takes a beat and a rap-song from youtube, detects bpm, beats and downbeats for each, isolates vocals from rap-song and stretches the 
 isolated vocals to fit the bpm of the beat
 
 ## Installation:
