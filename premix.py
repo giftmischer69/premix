@@ -107,24 +107,19 @@ def merge_wav(wav_01, wav_02, output_wav):
     cbm.build([wav_01, wav_02], output_wav, "mix-power")
 
 
-
 if __name__ == '__main__':
+    st.sidebar.title("Controls")
+    if st.sidebar.button("Stop"):
+        st.stop()
+
     st.title("phonk remix maker")
 
     beat_col, vocal_col = st.beta_columns(2)
     beat_url = beat_col.text_input("enter beat youtube url", "https://www.youtube.com/watch?v=jMeDA3UbTFU")
     vocal_url = vocal_col.text_input("enter vocals youtube url", "https://www.youtube.com/watch?v=J-Ectj_BPoo")
 
-    # if st.button("download"):
     download_to_wav(beat_url)
     download_to_wav(vocal_url)
-
-    # beat_dl = multiprocessing.Process(target=download_to_wav, args=(beat_url,))
-    # vocal_dl = multiprocessing.Process(target=download_to_wav, args=(vocal_url,))
-    # beat_dl.start()
-    # vocal_dl.start()
-    # beat_dl.join()
-    # vocal_dl.join()
 
     beat_yt = YouTube(beat_url)
     vocal_yt = YouTube(vocal_url)
@@ -151,9 +146,6 @@ if __name__ == '__main__':
 
     beat_beat_times = get_beat_times(beat_wav)
     vocal_beat_times = get_beat_times(vocal_wav)
-
-    # beat_col.write(beat_beat_times)
-    # vocal_col.write(vocal_beat_times)
 
     beat_downbeat_times = get_downbeat_times(beat_wav)
     vocal_downbeat_times = get_downbeat_times(vocal_wav)

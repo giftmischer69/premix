@@ -1,19 +1,36 @@
 # premix
 
+phonk remix maker
+
+takes a beat and a rap-song, detects bpm, beats and downbeats for each, isolates vocals from rap-song and stretches the 
+isolated vocals to fit the bpm of the beat
+
 ## Installation:
 
-Ubuntu (tested with Pop_OS! 20)
-- `conda install -c conda-forge sox`
-- `conda env create -f env.yaml` 
+Pre-Installation Dependencies:
+- any kind of [conda](https://docs.conda.io/en/latest/index.html) installation, e.g.:
+  - [miniconda](https://docs.conda.io/en/latest/miniconda.html) (minimal, recommended) or
+  - [anaconda](https://www.anaconda.com/products/individual) or
+  - [mamba](https://github.com/mamba-org/mamba) (fast, in beta)
+
+- download this repo, e.g.
+  - `git clone https://github.com/giftmischer69/premix`
+  - [download zip](https://github.com/giftmischer69/premix/archive/main.zip)
+
+Ubuntu (tested with Pop_OS!)
+- `chmod +x install.cmd`
+- `./install.cmd` 
 
 Windows
 - download & install: https://sourceforge.net/projects/sox/files/sox/
-- `conda env create -f env.yaml`
+- `install.cmd`
 
 ## Running:
-streamlit run premix.py 
+Ubuntu (tested with Pop_OS!)
+- `./premix.cmd`
 
-todo: change to wrapped stuff maybe nb-like (sh / bat script without extension) or frozen exe
+Windows
+- `premix.cmd`
 
 
 ## Screenshot:
