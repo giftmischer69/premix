@@ -22,7 +22,7 @@ Ubuntu (tested with Pop_OS!)
 - `./install.cmd` 
 
 Windows
-- download & install: https://sourceforge.net/projects/sox/files/sox/
+- download & install: https://sourceforge.net/projects/sox/files/sox/ (be shure to add to PATH)
 - `install.cmd`
 
 ## Running:
